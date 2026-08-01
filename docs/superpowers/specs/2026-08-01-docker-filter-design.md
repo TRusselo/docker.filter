@@ -223,11 +223,22 @@ Required fields: `<Name>`, `<PluginURL>`, `<Support>`, `<Project>`,
 `<Overview>`, `<Category>`, `<Icon>`. Category: `Tools:Utilities`.
 Plugin submissions are manually reviewed.
 
-### Placeholders to fill before submission
+### Repository identity
 
-- `GITHUB_USER` / repo name — needed for `pluginURL`, `project`, icon URL
-- Unraid forum support-thread URL — `support` attribute and `<Support>` field
-- `icon.png`
+GitHub user **`TRusselo`**, repo **`docker.filter`** (named to match the plugin,
+following the ecosystem convention of `folder.view2`, `compose.manager`).
+
+- `pluginURL` → `https://raw.githubusercontent.com/TRusselo/docker.filter/main/docker.filter.plg`
+- `project` → `https://github.com/TRusselo/docker.filter`
+
+### Outstanding before CA submission
+
+- **Unraid forum support thread** — not yet created. Blocks the `support`
+  attribute and the CA template's `<Support>` field, and therefore blocks
+  submission. Everything else can be built and used locally without it; the
+  plugin installs and runs fine with `support` pointing at the GitHub issues
+  page in the interim.
+- `icon.png` — needs to be authored.
 
 ### Persistence
 
