@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PluginEntity>
+  <Name>docker.filter</Name>
+  <Repository/>
+  <PluginURL>https://raw.githubusercontent.com/TRusselo/docker.filter/main/docker.filter.plg</PluginURL>
+  <Support>https://github.com/TRusselo/docker.filter/issues</Support>
+  <Project>https://github.com/TRusselo/docker.filter</Project>
+  <Category>Tools:Utilities</Category>
+  <Icon>https://raw.githubusercontent.com/TRusselo/docker.filter/main/icon.png</Icon>
+  <Overview>
+    Adds a filter box to the top of the Docker tab so you can find a container
+    by typing part of its name instead of scrolling a long list.
+
+    Fully compatible with folder.view2. When containers are grouped into
+    collapsed folders they are moved out of the container table entirely, so an
+    ordinary filter cannot see them. docker.filter reads both the table and
+    folder.view2's internal storage, and lifts matching containers into a
+    results group with all their normal controls intact. Typing a folder's name
+    matches everything inside it.
+
+    Clearing the box restores the table exactly as it was. The plugin stores no
+    configuration and the filter always starts empty.
+  </Overview>
+  <Date>2026-08-01</Date>
+</PluginEntity>

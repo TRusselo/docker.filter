@@ -1,0 +1,63 @@
+<?xml version='1.0' standalone='yes'?>
+<!DOCTYPE PLUGIN [
+<!ENTITY name      "docker.filter">
+<!ENTITY author    "TRusselo">
+<!ENTITY version   "2026.08.01">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/TRusselo/docker.filter/main/docker.filter.plg">
+<!ENTITY pkgURL    "https://github.com/TRusselo/docker.filter/releases/download/&version;">
+<!ENTITY pluginLOC "/boot/config/plugins/&name;">
+<!ENTITY emhttpLOC "/usr/local/emhttp/plugins/&name;">
+<!ENTITY package   "&name;-&version;-x86_64-1.txz">
+<!ENTITY sha256    "PACKAGE_SHA256">
+]>
+
+<PLUGIN name="&name;"
+        author="&author;"
+        version="&version;"
+        pluginURL="&pluginURL;"
+        support="https://github.com/TRusselo/docker.filter/issues"
+        project="https://github.com/TRusselo/docker.filter"
+        icon="filter"
+        min="7.0.0">
+
+<CHANGES>
+### 2026.08.01
+- Initial release
+- Filter box on the Docker tab, matching container names and folder names
+- Compatible with folder.view2: finds containers parked inside collapsed folders
+</CHANGES>
+
+<!-- Remove any previously downloaded package -->
+<FILE Run="/bin/bash">
+<INLINE>
+mkdir -p &pluginLOC;
+rm -f $(ls &pluginLOC;/&name;-*.txz 2>/dev/null | grep -v '&version;') 2>/dev/null
+</INLINE>
+</FILE>
+
+<!-- Download and install -->
+<FILE Name="&pluginLOC;/&package;" Run="upgradepkg --install-new">
+<URL>&pkgURL;/&package;</URL>
+<SHA256>&sha256;</SHA256>
+</FILE>
+
+<FILE Run="/bin/bash">
+<INLINE>
+echo ""
+echo "&name; &version; installed."
+echo "Open the Docker tab - the filter box appears above the container list."
+echo ""
+</INLINE>
+</FILE>
+
+<!-- Uninstall -->
+<FILE Run="/bin/bash" Method="remove">
+<INLINE>
+removepkg &name;-&version;-x86_64-1 2>/dev/null
+rm -rf &emhttpLOC;
+rm -rf &pluginLOC;
+echo "&name; removed."
+</INLINE>
+</FILE>
+
+</PLUGIN>
