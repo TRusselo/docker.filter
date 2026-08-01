@@ -45,7 +45,9 @@ export function createUI({ onQuery, debounceMs = DEBOUNCE_MS }) {
       return;
     }
     if (e.key !== 'Escape') return;
-    e.stopPropagation();
+    // Only swallow Escape when there's something to clear — an empty box
+    // shouldn't eat Escape from Unraid's own document-level handlers.
+    if (input.value !== '') e.stopPropagation();
     clear();
   });
 

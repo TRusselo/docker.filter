@@ -25,6 +25,10 @@
   padding: 2px 6px;
 }
 .df-clear:hover { opacity: 1; }
+/* The bare `hidden` attribute's display:none comes from the UA stylesheet
+   and loses to any author rule that sets `display` on `button` — Unraid's
+   themes do. Force it. */
+.df-bar .df-clear[hidden] { display: none !important; }
 
 .df-count {
   font-size: 12px;

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { buildTable } from './fixtures/dockerTable.js';
 import { start, relocate } from '../src/main.js';
 
@@ -109,5 +109,31 @@ describe('start', () => {
     await new Promise((r) => setTimeout(r, 0));
 
     expect(input.value).toBe('sona');
+  });
+});
+
+describe('auto-start idempotence', () => {
+  afterEach(() => {
+    delete window.__dockerFilterStarted;
+  });
+
+  it('does not start a second stack when the bundle is evaluated twice on the same page', async () => {
+    delete window.__dockerFilterStarted;
+    page();
+
+    // Simulate the plugin's bundle script tag being included twice: two
+    // independent module evaluations sharing the same `window` and DOM.
+    vi.resetModules();
+    await import('../src/main.js');
+    vi.resetModules();
+    await import('../src/main.js');
+
+    // Let both (attempted) auto-starts settle.
+    await new Promise((r) => setTimeout(r, 500));
+
+    // Only one stack should have relocated the bar and removed the root;
+    // a second stack racing the same rows would leave duplicate bars.
+    expect(document.querySelectorAll('.df-bar').length).toBe(1);
+    expect(document.getElementById('df-root')).toBeNull();
   });
 });

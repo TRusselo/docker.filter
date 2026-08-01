@@ -97,6 +97,15 @@ export async function start({ settle = {} } = {}) {
   return app;
 }
 
+// Guards against starting the stack twice — two #df-root elements, or the
+// bundle script included twice, would otherwise race two independent
+// applier/guard stacks over the same rows. Lives here, not inside start(),
+// so tests can still call the exported start() directly and repeatedly.
 if (typeof document !== 'undefined' && document.getElementById(ROOT_ID)) {
-  start().catch((err) => console.error('[docker.filter]', err));
+  if (typeof window !== 'undefined' && window.__dockerFilterStarted) {
+    // Another evaluation of this script already claimed the page.
+  } else {
+    if (typeof window !== 'undefined') window.__dockerFilterStarted = true;
+    start().catch((err) => console.error('[docker.filter]', err));
+  }
 }

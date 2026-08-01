@@ -50,6 +50,23 @@ describe('createUI', () => {
     expect(onQuery).toHaveBeenCalledExactlyOnceWith('');
   });
 
+  it('does not stop propagation of Escape when the input is already empty', () => {
+    const { input } = setup();
+    const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+    const stopPropagation = vi.spyOn(event, 'stopPropagation');
+    input.dispatchEvent(event);
+    expect(stopPropagation).not.toHaveBeenCalled();
+  });
+
+  it('stops propagation of Escape when the input has text', () => {
+    const { input, type } = setup();
+    type('sonarr');
+    const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+    const stopPropagation = vi.spyOn(event, 'stopPropagation');
+    input.dispatchEvent(event);
+    expect(stopPropagation).toHaveBeenCalledOnce();
+  });
+
   it('clears when the clear button is clicked', () => {
     const { ui, input, type, onQuery } = setup();
     type('sonarr');
