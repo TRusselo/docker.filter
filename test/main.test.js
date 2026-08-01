@@ -112,6 +112,79 @@ describe('start', () => {
   });
 });
 
+// A stock Unraid Docker tab with folder.view2 NOT installed: every container is
+// a plain `tr.sortable` in the tbody, and none of the `folder-*` markup exists.
+// The classes relied on here (tr.sortable, span.outer/inner/appname, i#load-<cid>)
+// are emitted by Unraid's own DockerContainers.php, not by folder.view2.
+function stockPage() {
+  document.body.innerHTML = `
+    <div class="content">
+      <div class="title">Docker Containers</div>
+      <div class="TableContainer"></div>
+      <div class="title">Docker Filter</div>
+      <div id="df-root"></div>
+    </div>`;
+  document.querySelector('.TableContainer').appendChild(buildTable({
+    loose: [
+      { cid: 'aaa111', name: 'mylar3' },
+      { cid: 'aaa222', name: 'sonarr' },
+      { cid: 'aaa333', name: 'radarr' },
+    ],
+  }));
+}
+
+describe('without folder.view2 installed', () => {
+  it('the fixture really contains no folder.view2 markup', () => {
+    stockPage();
+    const table = document.getElementById('docker_containers');
+    expect(table.querySelectorAll('.folder-storage')).toHaveLength(0);
+    expect(table.querySelectorAll('tr.folder')).toHaveLength(0);
+    expect(table.querySelectorAll('.folder-appname')).toHaveLength(0);
+    expect(table.querySelectorAll('tr.folder-element')).toHaveLength(0);
+  });
+
+  it('filters plain rows and restores the table exactly', async () => {
+    stockPage();
+    const app = await start({ settle: { quiet: 0, timeout: 0 } });
+    expect(app).not.toBeNull();
+
+    const tbody = document.getElementById('docker_containers').tBodies[0];
+    const before = tbody.innerHTML;
+
+    app.setQuery('arr');
+    expect(app.lastCount).toEqual({ shown: 2, total: 3 });
+    const shown = Array.from(tbody.children)
+      .filter((r) => !r.classList.contains('df-hidden')
+                  && !r.classList.contains('df-results-header'))
+      .map((r) => r.querySelector('.appname').textContent);
+    expect(shown).toEqual(['sonarr', 'radarr']);
+
+    app.setQuery('');
+    expect(tbody.innerHTML).toBe(before);
+  });
+
+  it('mounts the filter bar above the table', async () => {
+    stockPage();
+    await start({ settle: { quiet: 0, timeout: 0 } });
+    const container = document.querySelector('.TableContainer');
+    expect(container.previousElementSibling.classList.contains('df-bar')).toBe(true);
+    expect(document.getElementById('df-root')).toBeNull();
+  });
+
+  it('a folder-name query simply matches nothing rather than misbehaving', async () => {
+    stockPage();
+    const app = await start({ settle: { quiet: 0, timeout: 0 } });
+    const tbody = document.getElementById('docker_containers').tBodies[0];
+    const before = tbody.innerHTML;
+
+    app.setQuery('Services');
+    expect(app.lastCount).toEqual({ shown: 0, total: 3 });
+
+    app.setQuery('');
+    expect(tbody.innerHTML).toBe(before);
+  });
+});
+
 describe('auto-start idempotence', () => {
   afterEach(() => {
     delete window.__dockerFilterStarted;
