@@ -3,8 +3,26 @@
 set -euo pipefail
 
 PLUGIN="docker.filter"
-VERSION="${1:-$(date +%Y.%m.%d)}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PLG="$ROOT/$PLUGIN.plg"
+
+PLG_VERSION="$(sed -n 's/.*<!ENTITY version *"\([^"]*\)".*/\1/p' "$PLG" | head -n1)"
+if [ -z "$PLG_VERSION" ]; then
+  echo "error: could not find <!ENTITY version \"...\"> in $PLG" >&2
+  exit 1
+fi
+
+if [ "${1:-}" != "" ]; then
+  VERSION="$1"
+  if [ "$VERSION" != "$PLG_VERSION" ]; then
+    echo "error: requested version '$VERSION' does not match $PLUGIN.plg version '$PLG_VERSION'" >&2
+    echo "       update docker.filter.plg's <!ENTITY version> or build without an argument to use it." >&2
+    exit 1
+  fi
+else
+  VERSION="$PLG_VERSION"
+fi
+
 STAGE="$ROOT/source"
 DEST="$STAGE/usr/local/emhttp/plugins/$PLUGIN"
 OUT="$ROOT/packages/$PLUGIN-$VERSION-x86_64-1.txz"

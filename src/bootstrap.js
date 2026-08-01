@@ -30,18 +30,31 @@ export function whenSettled(target, { quiet = 400, timeout = 10000 } = {}) {
   });
 }
 
-/** Polls for an element, resolving null if it never appears. */
-export function waitForElement(selector, { timeout = 10000, interval = 100 } = {}) {
+/**
+ * Polls for an element, resolving null if it never appears (or never
+ * satisfies `test`, when given).
+ *
+ * `test` guards against a parse race: the HTML parser yields mid-stream while
+ * a large table is still being written, so a poll tick can land between
+ * `<table>` and its first `<tr>` — the element exists but isn't ready yet.
+ * Without a predicate an early match would be accepted anyway and the
+ * caller would never get another look.
+ */
+export function waitForElement(selector, { timeout = 10000, interval = 100, test } = {}) {
+  const satisfies = (el) => !!el && (!test || test(el));
   return new Promise((resolve) => {
     const found = document.querySelector(selector);
-    if (found) { resolve(found); return; }
+    if (satisfies(found)) { resolve(found); return; }
     let waited = 0;
     const tick = setInterval(() => {
       const el = document.querySelector(selector);
       waited += interval;
-      if (el || waited >= timeout) {
+      if (satisfies(el)) {
         clearInterval(tick);
-        resolve(el || null);
+        resolve(el);
+      } else if (waited >= timeout) {
+        clearInterval(tick);
+        resolve(null);
       }
     }, interval);
   });

@@ -36,6 +36,14 @@ export function createUI({ onQuery, debounceMs = DEBOUNCE_MS }) {
   });
 
   input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      // The bar can end up inside one of Unraid's own <form> elements;
+      // without this Enter triggers implicit form submission and navigates
+      // the page away. Flush the pending debounce instead.
+      e.preventDefault();
+      report(input.value);
+      return;
+    }
     if (e.key !== 'Escape') return;
     e.stopPropagation();
     clear();

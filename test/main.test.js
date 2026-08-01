@@ -20,22 +20,55 @@ function page() {
 describe('relocate', () => {
   it('moves the bar directly above the table container', () => {
     page();
-    relocate(document.querySelector('.df-bar'));
+    const table = document.getElementById('docker_containers');
+    relocate(document.querySelector('.df-bar'), table);
     const container = document.querySelector('.TableContainer');
     expect(container.previousElementSibling.className).toBe('df-bar');
   });
 
   it('removes the leftover section root and its heading', () => {
     page();
-    relocate(document.querySelector('.df-bar'));
+    const table = document.getElementById('docker_containers');
+    relocate(document.querySelector('.df-bar'), table);
     expect(document.getElementById('df-root')).toBeNull();
     const titles = [...document.querySelectorAll('.title')].map(t => t.textContent);
     expect(titles).toEqual(['Docker Containers']);
   });
 
-  it('leaves the page alone when there is no table container', () => {
+  it('does not throw when the page is degenerate (no table, no root)', () => {
     document.body.innerHTML = '<div class="df-bar">BAR</div>';
-    expect(() => relocate(document.querySelector('.df-bar'))).not.toThrow();
+    expect(() => relocate(document.querySelector('.df-bar'), null)).not.toThrow();
+  });
+
+  it('falls back to inserting directly before the table when there is no enclosing .TableContainer', () => {
+    document.body.innerHTML = '<div class="content"><div id="df-root"><div class="df-bar">BAR</div></div></div>';
+    const table = buildTable({ loose: [{ cid: 'aaa111', name: 'mylar3' }] });
+    document.querySelector('.content').appendChild(table);
+
+    relocate(document.querySelector('.df-bar'), table);
+
+    expect(table.previousElementSibling.className).toBe('df-bar');
+    expect(document.getElementById('df-root')).toBeNull();
+  });
+
+  it('with two .TableContainer elements, lands the bar above the one containing #docker_containers', () => {
+    document.body.innerHTML = `
+      <div class="content">
+        <div class="TableContainer" id="other"></div>
+        <div class="TableContainer" id="mine"></div>
+        <div id="df-root"><div class="df-bar">BAR</div></div>
+      </div>`;
+    const unrelated = document.createElement('table');
+    document.getElementById('other').appendChild(unrelated);
+    const table = buildTable({ loose: [{ cid: 'aaa111', name: 'mylar3' }] });
+    document.getElementById('mine').appendChild(table);
+
+    relocate(document.querySelector('.df-bar'), table);
+
+    const mine = document.getElementById('mine');
+    const other = document.getElementById('other');
+    expect(mine.previousElementSibling.className).toBe('df-bar');
+    expect(other.previousElementSibling).toBeNull();
   });
 });
 

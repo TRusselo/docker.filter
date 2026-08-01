@@ -13,11 +13,19 @@ const SECTION_TITLE = 'Docker Filter';
 /**
  * Moves the bar directly above the container table and removes the section
  * wrapper Unraid rendered it in, along with that section's heading.
+ *
+ * `table` is the specific `#docker_containers` element `start()` found —
+ * other plugins (e.g. compose.manager) can render their own `.TableContainer`
+ * elsewhere on the page, so we anchor on the container that actually wraps
+ * our table rather than the first `.TableContainer` in the document. If our
+ * table isn't wrapped in one at all, fall back to anchoring on the table
+ * itself so the bar still enters the document.
  */
-export function relocate(bar) {
-  const container = document.querySelector(S.tableContainer);
-  if (!container) return;
-  container.parentNode.insertBefore(bar, container);
+export function relocate(bar, table) {
+  const anchor = (table && table.closest(S.tableContainer)) || table || null;
+  if (anchor) {
+    anchor.parentNode.insertBefore(bar, anchor);
+  }
 
   const root = document.getElementById(ROOT_ID);
   if (!root) return;
@@ -33,11 +41,16 @@ export function relocate(bar) {
 }
 
 export async function start({ settle = {} } = {}) {
-  const table = await waitForElement(`#${TABLE_ID}`, { timeout: settle.timeout ?? 10000 });
+  // `test` guards against the parse race: the HTML parser can yield between
+  // <table> and its first <tr> while streaming a large table, so a poll tick
+  // may see the table before it has a tbody. Keep polling until both exist.
+  const table = await waitForElement(`#${TABLE_ID}`, {
+    timeout: settle.timeout ?? 10000,
+    test: (el) => el.tBodies.length > 0,
+  });
   if (!table) return null;
 
   const tbody = table.tBodies[0];
-  if (!tbody) return null;
 
   await whenSettled(tbody, settle);
 
@@ -76,7 +89,7 @@ export async function start({ settle = {} } = {}) {
   const root = document.getElementById(ROOT_ID);
   const bar = root ? root.querySelector('.df-bar') : null;
   if (bar) { bar.replaceWith(ui.element); }
-  relocate(ui.element);
+  relocate(ui.element, table);
 
   guard.start();
   window.addEventListener('beforeunload', () => applier.reset());

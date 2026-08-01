@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { whenSettled } from '../src/bootstrap.js';
+import { whenSettled, waitForElement } from '../src/bootstrap.js';
 
 beforeEach(() => { vi.useFakeTimers(); });
 afterEach(() => { vi.useRealTimers(); });
@@ -49,5 +49,49 @@ describe('whenSettled', () => {
     whenSettled(el, { quiet: 100, timeout: 300 }).then(done);
     await vi.advanceTimersByTimeAsync(1000);
     expect(done).toHaveBeenCalledOnce();
+  });
+});
+
+describe('waitForElement', () => {
+  it('resolves once an element that initially fails the predicate later satisfies it', async () => {
+    document.body.innerHTML = '<table id="t"></table>';
+    const done = vi.fn();
+    waitForElement('#t', {
+      timeout: 10000,
+      interval: 100,
+      test: (el) => el.tBodies.length > 0,
+    }).then(done);
+
+    await vi.advanceTimersByTimeAsync(250);
+    expect(done).not.toHaveBeenCalled();
+
+    document.getElementById('t').createTBody();
+    await vi.advanceTimersByTimeAsync(100);
+    expect(done).toHaveBeenCalledOnce();
+    expect(done).toHaveBeenCalledWith(document.getElementById('t'));
+  });
+
+  it('resolves null at timeout when the predicate is never satisfied', async () => {
+    document.body.innerHTML = '<table id="t"></table>';
+    const done = vi.fn();
+    waitForElement('#t', {
+      timeout: 500,
+      interval: 100,
+      test: (el) => el.tBodies.length > 0,
+    }).then(done);
+
+    await vi.advanceTimersByTimeAsync(500);
+    expect(done).toHaveBeenCalledExactlyOnceWith(null);
+  });
+
+  it('keeps the default behavior (no predicate) for existing callers', async () => {
+    document.body.innerHTML = '';
+    const done = vi.fn();
+    waitForElement('#t', { timeout: 500, interval: 100 }).then(done);
+
+    await vi.advanceTimersByTimeAsync(200);
+    document.body.innerHTML = '<div id="t"></div>';
+    await vi.advanceTimersByTimeAsync(100);
+    expect(done).toHaveBeenCalledExactlyOnceWith(document.getElementById('t'));
   });
 });

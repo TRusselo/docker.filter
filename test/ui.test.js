@@ -29,6 +29,17 @@ describe('createUI', () => {
     expect(onQuery).toHaveBeenCalledExactlyOnceWith('');
   });
 
+  it('flushes the pending debounce immediately on Enter, without waiting', () => {
+    const { input, type, onQuery } = setup();
+    type('sonarr');
+    expect(onQuery).not.toHaveBeenCalled();
+    const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+    const preventDefault = vi.spyOn(event, 'preventDefault');
+    input.dispatchEvent(event);
+    expect(preventDefault).toHaveBeenCalledOnce();
+    expect(onQuery).toHaveBeenCalledExactlyOnceWith('sonarr');
+  });
+
   it('clears on Escape', () => {
     const { input, type, onQuery } = setup();
     type('sonarr');
