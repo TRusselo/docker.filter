@@ -1,3 +1,5 @@
-packages/*.txz
 node_modules/
+packages/*.txz
+source/usr/local/emhttp/plugins/docker.filter/javascript/docker-filter.js
+source/usr/local/emhttp/plugins/docker.filter/styles/docker-filter.css
 .DS_Store

@@ -1,0 +1,18 @@
+{
+  "name": "docker.filter",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Unraid plugin: filter box for the Docker tab",
+  "license": "GPL-2.0-only",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "build": "./build.sh"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.1",
+    "jsdom": "^30.0.1",
+    "vitest": "^4.1.10"
+  }
+}
