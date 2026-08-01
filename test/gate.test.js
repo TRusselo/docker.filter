@@ -43,4 +43,14 @@ describe('createGate', () => {
   it('returns the body result', () => {
     expect(createGate().run(() => 42)).toBe(42);
   });
+
+  it('runs remaining drains and clears busy even if an earlier drain throws', () => {
+    const gate = createGate();
+    const second = vi.fn();
+    gate.onDrain(() => { throw new Error('drain boom'); });
+    gate.onDrain(second);
+    gate.run(() => {});
+    expect(second).toHaveBeenCalledOnce();
+    expect(gate.busy).toBe(false);
+  });
 });

@@ -17,7 +17,13 @@ export function createGate() {
       try {
         return fn();
       } finally {
-        for (const drain of drains) drain();
+        for (const drain of drains) {
+          try {
+            drain();
+          } catch {
+            // A bad drain must not block the others or leave depth wedged.
+          }
+        }
         depth -= 1;
       }
     },

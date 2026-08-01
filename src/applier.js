@@ -27,19 +27,26 @@ export function createApplier(tbody, gate) {
   let header = null;
 
   function restore() {
-    // Reverse order: a row's recorded nextSibling may be a row moved after it.
-    for (let i = moved.length - 1; i >= 0; i -= 1) {
-      const { row, parent, nextSibling } = moved[i];
-      parent.insertBefore(row, nextSibling);
+    try {
+      // Reverse order: a row's recorded nextSibling may be a row moved after it.
+      for (let i = moved.length - 1; i >= 0; i -= 1) {
+        const { row, parent, nextSibling } = moved[i];
+        try {
+          if (parent) parent.insertBefore(row, nextSibling);
+        } catch {
+          // A corrupted record degrades to one lost row, not a wedged filter.
+        }
+      }
+    } finally {
+      moved = [];
+      for (const row of hidden) row.classList.remove(HIDDEN_CLASS);
+      hidden = [];
+      if (header) {
+        header.remove();
+        header = null;
+      }
+      document.body.classList.remove(FILTERING_CLASS);
     }
-    moved = [];
-    for (const row of hidden) row.classList.remove(HIDDEN_CLASS);
-    hidden = [];
-    if (header) {
-      header.remove();
-      header = null;
-    }
-    document.body.classList.remove(FILTERING_CLASS);
   }
 
   function reset() {
@@ -67,6 +74,9 @@ export function createApplier(tbody, gate) {
 
       let anchor = header;
       for (const { row } of entries) {
+        // A row with no current parent can't be restored later; skip it
+        // rather than recording an unrestorable entry.
+        if (!row.parentNode) continue;
         moved.push({ row, parent: row.parentNode, nextSibling: row.nextSibling });
         anchor.after(row);
         row.classList.remove(HIDDEN_CLASS);

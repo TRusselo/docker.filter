@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { buildTable, mount } from './fixtures/dockerTable.js';
 import { indexContainers } from '../src/indexer.js';
 import { matchEntries } from '../src/matcher.js';
@@ -117,5 +117,36 @@ describe('createApplier', () => {
     filter('zzzznope');
     expect(applier.active).toBe(false);
     expect(tbody.innerHTML).toBe(before);
+  });
+
+  it('skips an entry whose row is already detached, without throwing', () => {
+    const { tbody, applier } = setup();
+    const detached = document.createElement('tr');
+    expect(() => applier.apply([{ row: detached }])).not.toThrow();
+    expect(applier.active).toBe(false);
+    expect(tbody.contains(detached)).toBe(false);
+  });
+
+  it('recovers when a restore move throws: state clears and later filtering still works', () => {
+    const { tbody, applier, filter } = setup();
+    filter('arr'); // moves sonarr + radarr out of folder storage
+
+    const spy = vi.spyOn(Node.prototype, 'insertBefore').mockImplementationOnce(() => {
+      throw new Error('simulated corrupted record');
+    });
+    expect(() => applier.reset()).not.toThrow();
+    spy.mockRestore();
+
+    // State is fully cleared despite the one failed move.
+    expect(applier.active).toBe(false);
+    expect(document.body.classList.contains('df-filtering')).toBe(false);
+    expect(tbody.querySelector('.df-results-header')).toBeNull();
+
+    // The filter mechanism itself is not permanently wedged.
+    filter('mylar3');
+    expect(applier.active).toBe(true);
+    expect(tbody.children[0].classList.contains('df-results-header')).toBe(true);
+    applier.reset();
+    expect(applier.active).toBe(false);
   });
 });

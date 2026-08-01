@@ -55,4 +55,22 @@ describe('createGuard', () => {
     await flush();
     expect(onForeign).not.toHaveBeenCalled();
   });
+
+  it('detects a mutation inside a folder-storage subtree', async () => {
+    const tbody = mount(buildTable({
+      folders: [{
+        id: 'F1', name: 'Services', collapsed: true,
+        children: [{ cid: 'bbb111', name: 'sonarr' }],
+      }],
+    }));
+    const gate = createGate();
+    const onForeign = vi.fn();
+    const guard = createGuard(tbody, gate, onForeign);
+    guard.start();
+
+    const storage = tbody.querySelector('.folder-storage');
+    storage.appendChild(document.createElement('tr'));
+    await flush();
+    expect(onForeign).toHaveBeenCalledOnce();
+  });
 });
