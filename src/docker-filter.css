@@ -1,0 +1,45 @@
+.df-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 4px;
+  padding: 6px 10px;
+}
+
+.df-icon { opacity: 0.6; }
+
+.df-input {
+  flex: 0 1 320px;
+  min-width: 160px;
+  padding: 5px 8px;
+  font-size: 13px;
+}
+
+.df-clear {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0.6;
+  padding: 2px 6px;
+}
+.df-clear:hover { opacity: 1; }
+
+.df-count {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* Rows hidden while a filter is active. */
+tr.df-hidden { display: none !important; }
+
+.df-results-header td {
+  font-weight: bold;
+  opacity: 0.75;
+  padding: 6px 10px;
+}
+
+/* Reordering while filtered would invalidate every recorded restore position. */
+.df-filtering .mover,
+.df-filtering .ToggleViewMode { display: none !important; }

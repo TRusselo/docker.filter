@@ -1,0 +1,16 @@
+Menu="Docker:1"
+Title="Docker Filter"
+Type="php"
+---
+<?php
+/* docker.filter - adds a filter box to the Docker tab */
+$dfPlugin = 'docker.filter';
+$dfBase   = "/usr/local/emhttp/plugins/$dfPlugin";
+$dfCss    = "$dfBase/styles/docker-filter.css";
+$dfJs     = "$dfBase/javascript/docker-filter.js";
+$dfCssV   = file_exists($dfCss) ? filemtime($dfCss) : 0;
+$dfJsV    = file_exists($dfJs)  ? filemtime($dfJs)  : 0;
+?>
+<link rel="stylesheet" href="/plugins/<?=$dfPlugin?>/styles/docker-filter.css?v=<?=$dfCssV?>">
+<div id="df-root"></div>
+<script src="/plugins/<?=$dfPlugin?>/javascript/docker-filter.js?v=<?=$dfJsV?>"></script>
