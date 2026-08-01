@@ -8,7 +8,7 @@
 <!ENTITY pluginLOC "/boot/config/plugins/&name;">
 <!ENTITY emhttpLOC "/usr/local/emhttp/plugins/&name;">
 <!ENTITY package   "&name;-&version;-x86_64-1.txz">
-<!ENTITY sha256    "PACKAGE_SHA256">
+<!ENTITY sha256    "136bcc8fb6fff6212b595c0336bed8b68db01cb99b3f1839ea69d6ad1914a664">
 ]>
 
 <PLUGIN name="&name;"
