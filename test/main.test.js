@@ -64,4 +64,17 @@ describe('start', () => {
     document.body.innerHTML = '<div class="content"></div>';
     expect(await start({ settle: { quiet: 0, timeout: 0 } })).toBeNull();
   });
+
+  it('does not clear the user\'s typed input on a foreign change when no filter is active', async () => {
+    page();
+    await start({ settle: { quiet: 0, timeout: 0 } });
+    const input = document.querySelector('.df-input');
+    input.value = 'sona';
+
+    const tbody = document.getElementById('docker_containers').tBodies[0];
+    tbody.appendChild(document.createElement('tr'));
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(input.value).toBe('sona');
+  });
 });

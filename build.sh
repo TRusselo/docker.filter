@@ -18,7 +18,7 @@ npx esbuild "$ROOT/src/main.js" \
 cp "$ROOT/src/docker-filter.css" "$DEST/styles/docker-filter.css"
 
 rm -f "$ROOT/packages/$PLUGIN"-*.txz
-tar -C "$STAGE" -cJf "$OUT" usr
+tar -C "$STAGE" --owner=0 --group=0 --numeric-owner -cJf "$OUT" usr
 
 echo "built: $OUT"
 echo "sha256: $(sha256sum "$OUT" | cut -d' ' -f1)"

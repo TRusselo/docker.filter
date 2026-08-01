@@ -73,4 +73,56 @@ describe('createGuard', () => {
     await flush();
     expect(onForeign).toHaveBeenCalledOnce();
   });
+
+  it('ignores a live stats update that replaces an <i> element\'s text node', async () => {
+    const { tbody, onForeign } = setup();
+    const cpuEl = tbody.querySelector('i[id^="cpu-"]');
+    cpuEl.textContent = '12%';
+    await flush();
+    expect(onForeign).not.toHaveBeenCalled();
+  });
+
+  it('ignores a live stats update setting textContent repeatedly', async () => {
+    const { tbody, onForeign } = setup();
+    const loadEl = tbody.querySelector('i[id^="load-"]');
+    loadEl.textContent = '0.5';
+    loadEl.textContent = '0.6';
+    await flush();
+    expect(onForeign).not.toHaveBeenCalled();
+  });
+
+  it('fires when a <tr> is removed', async () => {
+    const { tbody, onForeign } = setup();
+    tbody.removeChild(tbody.firstElementChild);
+    await flush();
+    expect(onForeign).toHaveBeenCalledOnce();
+  });
+
+  it('fires when a <tr> moves out of a folder-storage subtree', async () => {
+    const tbody = mount(buildTable({
+      folders: [{
+        id: 'F1', name: 'Services', collapsed: true,
+        children: [{ cid: 'bbb111', name: 'sonarr' }],
+      }],
+    }));
+    const gate = createGate();
+    const onForeign = vi.fn();
+    const guard = createGuard(tbody, gate, onForeign);
+    guard.start();
+
+    const storage = tbody.querySelector('.folder-storage');
+    const row = storage.querySelector('tr');
+    tbody.appendChild(row);
+    await flush();
+    expect(onForeign).toHaveBeenCalledOnce();
+  });
+
+  it('ignores a non-TR element added inside a row', async () => {
+    const { tbody, onForeign } = setup();
+    const cell = tbody.querySelector('td');
+    const span = document.createElement('span');
+    cell.appendChild(span);
+    await flush();
+    expect(onForeign).not.toHaveBeenCalled();
+  });
 });

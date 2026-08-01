@@ -6,10 +6,21 @@
  * Registers a drain on the gate so records produced by our own writes are
  * consumed and discarded while the gate is still busy.
  */
+function touchesRow(nodes) {
+  for (const node of nodes) {
+    if (node.nodeName === 'TR') return true;
+  }
+  return false;
+}
+
 export function createGuard(tbody, gate, onForeignChange) {
   const observer = new MutationObserver((records) => {
     if (gate.busy) return;
-    if (!records.some((r) => r.type === 'childList')) return;
+    const rowChanged = records.some(
+      (r) => r.type === 'childList' &&
+        (touchesRow(r.addedNodes) || touchesRow(r.removedNodes)),
+    );
+    if (!rowChanged) return;
     onForeignChange();
   });
 

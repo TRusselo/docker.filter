@@ -48,6 +48,7 @@ export async function start({ settle = {} } = {}) {
   const ui = createUI({ onQuery: (q) => app.setQuery(q) });
 
   const guard = createGuard(tbody, gate, () => {
+    if (!applier.active) return;
     applier.reset();
     ui.clear();
     ui.setCount(null, 0);
